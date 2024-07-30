@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { createRenderer, fireEvent, act, userEvent } from '@mui-internal/test-utils';
+import { createRenderer, fireEvent, act, userEvent } from '@mui/internal-test-utils';
 import { spy } from 'sinon';
 import { expect } from 'chai';
 import {
@@ -27,8 +27,12 @@ import { useBasicDemoData, getBasicGridData } from '@mui/x-data-grid-generator';
 
 const isJSDOM = /jsdom/.test(window.navigator.userAgent);
 
+interface BaselineProps extends DataGridProProps {
+  rows: GridValidRowModel[];
+}
+
 describe('<DataGridPro /> - Rows', () => {
-  let baselineProps: DataGridProProps & { rows: GridValidRowModel };
+  let baselineProps: BaselineProps;
 
   const { clock, render } = createRenderer({ clock: 'fake' });
 
@@ -959,7 +963,9 @@ describe('<DataGridPro /> - Rows', () => {
     it('should not show total row count in footer if `rowCount === rows.length`', () => {
       const { rows, columns } = getBasicGridData(10, 2);
       const rowCount = rows.length;
-      render(<TestCase rows={rows} columns={columns} rowCount={rowCount} />);
+      render(
+        <TestCase rows={rows} columns={columns} rowCount={rowCount} paginationMode="server" />,
+      );
 
       const rowCountElement = document.querySelector<HTMLElement>(`.${gridClasses.rowCount}`);
       expect(rowCountElement!.textContent).to.equal(`Total Rows: ${rows.length}`);
@@ -968,7 +974,9 @@ describe('<DataGridPro /> - Rows', () => {
     it('should show total row count in footer if `rowCount !== rows.length`', () => {
       const { rows, columns } = getBasicGridData(10, 2);
       const rowCount = rows.length + 10;
-      render(<TestCase rows={rows} columns={columns} rowCount={rowCount} />);
+      render(
+        <TestCase rows={rows} columns={columns} rowCount={rowCount} paginationMode="server" />,
+      );
 
       const rowCountElement = document.querySelector<HTMLElement>(`.${gridClasses.rowCount}`);
       expect(rowCountElement!.textContent).to.equal(`Total Rows: ${rows.length} of ${rowCount}`);
@@ -977,7 +985,9 @@ describe('<DataGridPro /> - Rows', () => {
     it('should update total row count in footer on `rowCount` prop change', () => {
       const { rows, columns } = getBasicGridData(10, 2);
       let rowCount = rows.length;
-      const { setProps } = render(<TestCase rows={rows} columns={columns} rowCount={rowCount} />);
+      const { setProps } = render(
+        <TestCase rows={rows} columns={columns} rowCount={rowCount} paginationMode="server" />,
+      );
       rowCount += 1;
       setProps({ rowCount });
 

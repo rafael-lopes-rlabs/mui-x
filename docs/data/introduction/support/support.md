@@ -8,7 +8,7 @@ We use GitHub issues as a bug and feature request tracker.
 
 If you think you've found a bug, or you have a new feature idea:
 
-1. Please start by [making sure it hasn't already been reported or fixed](https://github.com/mui/mui-x/issues?utf8=%E2%9C%93&q=is%3Aopen+is%3Aclosed).
+1. Please start by [making sure it hasn't already been reported or fixed](https://github.com/mui/mui-x/issues?q=is%3Aissue).
    You can search through existing issues and pull requests to see if someone has reported one similar to yours.
 2. Then, if no duplicates exist, [open an issue](https://github.com/mui/mui-x/issues/new/choose) in the MUI X repository.
 
@@ -40,7 +40,7 @@ You can browse the documentation, find an example close to your use case, and th
 </span>
 </a>
 
-- [Data Grid](/x/react-data-grid/#mit-version-free-forever)
+- [Data Grid](/x/react-data-grid/#mit-license-free-forever)
 - [Date Pickers](/x/react-date-pickers/getting-started/#render-your-first-component)
 - [Charts](/x/react-charts/getting-started/#single-charts)
 - [Tree View](/x/react-tree-view/#simple-tree-view)
@@ -106,7 +106,7 @@ This includes issues introduced by external sources, like browser upgrades or ch
 
 ### Social media
 
-The MUI X community is active on both [X/Twitter](https://twitter.com/MUI_hq) and [LinkedIn](https://www.linkedin.com/company/mui/).
+The MUI X community is active on both [X/Twitter](https://x.com/MUI_hq) and [LinkedIn](https://www.linkedin.com/company/mui/).
 These are great platforms to share what you're working on and connect with other developers.
 
 ### Discord

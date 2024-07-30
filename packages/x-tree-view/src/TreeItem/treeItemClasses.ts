@@ -16,10 +16,12 @@ export interface TreeItemClasses {
   focused: string;
   /** State class applied to the element when disabled. */
   disabled: string;
-  /** Styles applied to the tree node icon. */
+  /** Styles applied to the tree item icon. */
   iconContainer: string;
   /** Styles applied to the label element. */
   label: string;
+  /** Styles applied to the checkbox element. */
+  checkbox: string;
 }
 
 export type TreeItemClassKey = keyof TreeItemClasses;
@@ -38,4 +40,5 @@ export const treeItemClasses: TreeItemClasses = generateUtilityClasses('MuiTreeI
   'disabled',
   'iconContainer',
   'label',
+  'checkbox',
 ]);

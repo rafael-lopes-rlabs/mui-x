@@ -6,7 +6,7 @@ import {
   act,
   userEvent,
   waitFor,
-} from '@mui-internal/test-utils';
+} from '@mui/internal-test-utils';
 import {
   microtasks,
   getColumnHeaderCell,
@@ -34,6 +34,10 @@ import { spy } from 'sinon';
 
 const isJSDOM = /jsdom/.test(window.navigator.userAgent);
 
+interface BaselineProps extends DataGridPremiumProps {
+  rows: GridRowsProp;
+}
+
 const rows: GridRowsProp = [
   { id: 0, category1: 'Cat A', category2: 'Cat 1' },
   { id: 1, category1: 'Cat A', category2: 'Cat 2' },
@@ -51,7 +55,7 @@ const unbalancedRows: GridRowsProp = [
   { id: 5, category1: null },
 ];
 
-const baselineProps: DataGridPremiumProps = {
+const baselineProps: BaselineProps = {
   autoHeight: isJSDOM,
   disableVirtualization: true,
   rows,
@@ -161,6 +165,22 @@ describe('<DataGridPremium /> - Row grouping', () => {
         />,
       );
       expect(getColumnValues(0)).to.deep.equal(['Cat A (3)', '', '', '', 'Cat B (2)', '', '']);
+    });
+
+    it('should display icon on auto-generated row', () => {
+      render(
+        <Test
+          initialState={{
+            rowGrouping: {
+              model: ['isFilled'],
+            },
+          }}
+          columns={[...baselineProps.columns, { field: 'isFilled', type: 'boolean' }]}
+          rows={baselineProps.rows?.map((row) => ({ ...row, isFilled: false }))}
+        />,
+      );
+
+      expect(screen.getByTestId('CloseIcon')).toBeVisible();
     });
 
     it('should respect the grouping criteria with colDef.groupable = false', () => {

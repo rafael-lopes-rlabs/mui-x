@@ -28,10 +28,11 @@ export type { GridPremiumSlotsComponent as GridSlots } from '../models';
 
 const releaseInfo = getReleaseInfo();
 
-const dataGridPremiumPropValidators: PropValidator<DataGridPremiumProcessedProps>[] = [
-  ...propValidatorsDataGrid,
-  ...propValidatorsDataGridPro,
-];
+let dataGridPremiumPropValidators: PropValidator<DataGridPremiumProcessedProps>[];
+
+if (process.env.NODE_ENV !== 'production') {
+  dataGridPremiumPropValidators = [...propValidatorsDataGrid, ...propValidatorsDataGridPro];
+}
 
 const DataGridPremiumRaw = React.forwardRef(function DataGridPremium<R extends GridValidRowModel>(
   inProps: DataGridPremiumProps<R>,
@@ -42,7 +43,9 @@ const DataGridPremiumRaw = React.forwardRef(function DataGridPremium<R extends G
 
   useLicenseVerifier('x-data-grid-premium', releaseInfo);
 
-  validateProps(props, dataGridPremiumPropValidators);
+  if (process.env.NODE_ENV !== 'production') {
+    validateProps(props, dataGridPremiumPropValidators);
+  }
   return (
     <GridContextProvider privateApiRef={privateApiRef} props={props}>
       <GridRoot
@@ -61,26 +64,11 @@ const DataGridPremiumRaw = React.forwardRef(function DataGridPremium<R extends G
     </GridContextProvider>
   );
 });
-interface DataGridPremiumComponent {
-  <R extends GridValidRowModel = any>(
-    props: DataGridPremiumProps<R> & React.RefAttributes<HTMLDivElement>,
-  ): React.JSX.Element;
-  propTypes?: any;
-}
-
-/**
- * Demos:
- * - [DataGridPremium](https://mui.com/x/react-data-grid/demo/)
- *
- * API:
- * - [DataGridPremium API](https://mui.com/x/api/data-grid/data-grid-premium/)
- */
-export const DataGridPremium = React.memo(DataGridPremiumRaw) as DataGridPremiumComponent;
 
 DataGridPremiumRaw.propTypes = {
   // ----------------------------- Warning --------------------------------
   // | These PropTypes are generated from the TypeScript type definitions |
-  // | To update them edit the TypeScript types and run "yarn proptypes"  |
+  // | To update them edit the TypeScript types and run "pnpm proptypes"  |
   // ----------------------------------------------------------------------
   /**
    * Aggregation functions available on the grid.
@@ -113,7 +101,7 @@ DataGridPremiumRaw.propTypes = {
    */
   'aria-labelledby': PropTypes.string,
   /**
-   * If `true`, the Data Grid height is dynamic and follow the number of rows in the Data Grid.
+   * If `true`, the Data Grid height is dynamic and follows the number of rows in the Data Grid.
    * @default false
    */
   autoHeight: PropTypes.bool,
@@ -314,6 +302,12 @@ DataGridPremiumRaw.propTypes = {
    */
   editMode: PropTypes.oneOf(['cell', 'row']),
   /**
+   * Use if the actual rowCount is not known upfront, but an estimation is available.
+   * If some rows have children (for instance in the tree data), this number represents the amount of top level rows.
+   * Applicable only with `paginationMode="server"` and when `rowCount="-1"`
+   */
+  estimatedRowCount: PropTypes.number,
+  /**
    * Unstable features, breaking changes might be introduced.
    * For each feature, if the flag is not explicitly set to `true`, then the feature is fully disabled, and neither property nor method calls will have any effect.
    */
@@ -357,7 +351,7 @@ DataGridPremiumRaw.propTypes = {
    * Determines the position of an aggregated value.
    * @param {GridGroupNode} groupNode The current group.
    * @returns {GridAggregationPosition | null} Position of the aggregated value (if `null`, the group isn't aggregated).
-   * @default `(groupNode) => groupNode == null ? 'footer' : 'inline'`
+   * @default (groupNode) => groupNode == null ? 'footer' : 'inline'
    */
   getAggregationPosition: PropTypes.func,
   /**
@@ -422,6 +416,10 @@ DataGridPremiumRaw.propTypes = {
    * The grouping column used by the tree data.
    */
   groupingColDef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+  /**
+   * Override the height of the header filters.
+   */
+  headerFilterHeight: PropTypes.number,
   /**
    * If `true`, enables the data grid filtering on header feature.
    * @default false
@@ -505,7 +503,8 @@ DataGridPremiumRaw.propTypes = {
    */
   keepNonExistentRowsSelected: PropTypes.bool,
   /**
-   * If `true`, a  loading overlay is displayed.
+   * If `true`, a loading overlay is displayed.
+   * @default false
    */
   loading: PropTypes.bool,
   /**
@@ -717,6 +716,11 @@ DataGridPremiumRaw.propTypes = {
    */
   onMenuOpen: PropTypes.func,
   /**
+   * Callback fired when the pagination meta has changed.
+   * @param {GridPaginationMeta} paginationMeta Updated pagination meta.
+   */
+  onPaginationMetaChange: PropTypes.func,
+  /**
    * Callback fired when the pagination model has changed.
    * @param {GridPaginationModel} model Updated pagination model.
    * @param {GridCallbackDetails} details Additional details for this callback.
@@ -851,6 +855,13 @@ DataGridPremiumRaw.propTypes = {
    */
   pagination: PropTypes.bool,
   /**
+   * The extra information about the pagination state of the Data Grid.
+   * Only applicable with `paginationMode="server"`.
+   */
+  paginationMeta: PropTypes.shape({
+    hasNextPage: PropTypes.bool,
+  }),
+  /**
    * Pagination can be processed on the server or client-side.
    * Set it to 'client' if you would like to handle the pagination on the client-side.
    * Set it to 'server' if you would like to handle the pagination on the server-side.
@@ -884,6 +895,11 @@ DataGridPremiumRaw.propTypes = {
    */
   processRowUpdate: PropTypes.func,
   /**
+   * The milliseconds throttle delay for resizing the grid.
+   * @default 60
+   */
+  resizeThrottleMs: PropTypes.number,
+  /**
    * Row region in pixels to render before/after the viewport
    * @default 150
    */
@@ -891,6 +907,7 @@ DataGridPremiumRaw.propTypes = {
   /**
    * Set the total number of rows, if it is different from the length of the value `rows` prop.
    * If some rows have children (for instance in the tree data), this number represents the amount of top level rows.
+   * Only works with `paginationMode="server"`, ignored when `paginationMode="client"`.
    */
   rowCount: PropTypes.number,
   /**
@@ -1006,7 +1023,7 @@ DataGridPremiumRaw.propTypes = {
    * The function is used to split the pasted text into rows and cells.
    * @param {string} text The text pasted from the clipboard.
    * @returns {string[][] | null} A 2D array of strings. The first dimension is the rows, the second dimension is the columns.
-   * @default `(pastedText) => { const text = pastedText.replace(/\r?\n$/, ''); return text.split(/\r\n|\n|\r/).map((row) => row.split('\t')); }`
+   * @default (pastedText) => { const text = pastedText.replace(/\r?\n$/, ''); return text.split(/\r\n|\n|\r/).map((row) => row.split('\t')); }
    */
   splitClipboardPastedText: PropTypes.func,
   /**
@@ -1028,4 +1045,32 @@ DataGridPremiumRaw.propTypes = {
    * @default false
    */
   treeData: PropTypes.bool,
+  unstable_dataSource: PropTypes.shape({
+    getChildrenCount: PropTypes.func,
+    getGroupKey: PropTypes.func,
+    getRows: PropTypes.func.isRequired,
+    updateRow: PropTypes.func,
+  }),
+  unstable_dataSourceCache: PropTypes.shape({
+    clear: PropTypes.func.isRequired,
+    get: PropTypes.func.isRequired,
+    set: PropTypes.func.isRequired,
+  }),
+  unstable_onDataSourceError: PropTypes.func,
 } as any;
+
+interface DataGridPremiumComponent {
+  <R extends GridValidRowModel = any>(
+    props: DataGridPremiumProps<R> & React.RefAttributes<HTMLDivElement>,
+  ): React.JSX.Element;
+  propTypes?: any;
+}
+
+/**
+ * Demos:
+ * - [DataGridPremium](https://mui.com/x/react-data-grid/demo/)
+ *
+ * API:
+ * - [DataGridPremium API](https://mui.com/x/api/data-grid/data-grid-premium/)
+ */
+export const DataGridPremium = React.memo(DataGridPremiumRaw) as DataGridPremiumComponent;
